@@ -1,3 +1,5 @@
+from asyncio.windows_events import NULL
+from pickle import FALSE
 from flask import Blueprint, render_template, request
 import pandas
 from datetime import date
@@ -72,7 +74,10 @@ def calling_with_date(calling_t, start, end):
     for row in csv_file:
         if calling_t == row[1]:
             data.append(row)
-    return pandas.DataFrame(data, columns=['id', 'calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk'])
+    
+    tst = pandas.DataFrame(data, columns=['id', 'calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk'])
+
+    return tst[['calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk']]
 
 
 def called_with_date(called_t, start, end):
@@ -109,7 +114,10 @@ def called_with_date(called_t, start, end):
     for row in csv_file:
         if called_t == row[2]:
             data.append(row)
-    return pandas.DataFrame(data, columns=['id', 'calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk'])
+
+    tst = pandas.DataFrame(data, columns=['id', 'calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk'])
+
+    return tst[['calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk']]
 
 
 def fully_input(calling_t, called_t, start, end):
@@ -146,7 +154,10 @@ def fully_input(calling_t, called_t, start, end):
     for row in csv_file:
         if called_t == row[2] and calling_t == row[1]:
             data.append(row)
-    return pandas.DataFrame(data, columns=['id', 'calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk'])
+
+    tst = pandas.DataFrame(data, columns=['id', 'calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk'])
+
+    return tst[['calling', 'called', 'date', 'startTime', 'Endtime', 'incomingTrunk']]
 
 @views.route('/', methods=['GET', 'POST'])
 def home():
@@ -155,31 +166,30 @@ def home():
         called = request.form.get('called_number')
         startDate = request.form.get('startdate')
         endDate = request.form.get('enddate')
+        err = None
 
-
-        if calling != '' and called == '' and startDate == '' and endDate == '':
-            res = calling_fnc(calling)
-            os.remove("combined_csv.csv")
-            return render_template("home.html", tables=[res.to_html()], titles=[''])
-
-        elif calling == '' and called != '' and startDate == '' and endDate == '':
-            res = called_fnc(called)
-            os.remove("combined_csv.csv")
-            return render_template("home.html", tables=[res.to_html()], titles=[''])
-
-        elif calling != '' and called == '' and startDate != '' and endDate != '':
+        if calling != '' and called == '' and startDate != '' and endDate != '':
             res = calling_with_date(calling, startDate, endDate)
-            os.remove("combined_csv.csv")
-            return render_template("home.html", tables=[res.to_html()], titles=[''])
+            if res.empty == True:
+                return render_template("home.html", err = 'No Record Found' )
+            else:
+                os.remove("combined_csv.csv")
+                return render_template("home.html", tables=[res.to_html()], titles=[''])
 
         elif calling == '' and called != '' and startDate != '' and endDate != '':
             res = called_with_date(called, startDate, endDate)
-            os.remove("combined_csv.csv")
-            return render_template("home.html", tables=[res.to_html()], titles=[''])
+            if res.empty == True:
+                return render_template("home.html", err = 'No Record Found' )
+            else:
+                os.remove("combined_csv.csv")
+                return render_template("home.html", tables=[res.to_html()], titles=[''])
 
         elif calling != '' and called != '' and startDate != '' and endDate != '':
             res = fully_input(calling, called, startDate, endDate)
-            os.remove("combined_csv.csv")
-            return render_template("home.html", tables=[res.to_html()], titles=[''])
+            if res.empty == True:
+                return render_template("home.html", err = 'No Record Found' )
+            else:
+                os.remove("combined_csv.csv")
+                return render_template("home.html", tables=[res.to_html()], titles=[''])
 
     return render_template("home.html")

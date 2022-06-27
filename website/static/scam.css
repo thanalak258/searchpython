@@ -115,3 +115,15 @@ tr:hover            { background-color: #ffff99;}
 	text-align: center;
 	background-color: white;
 }
+
+.table-style {
+	width: 100%;
+}
+
+.table-style td {
+	width: 100px;
+}
+
+.info{
+	text-align: center;
+}
